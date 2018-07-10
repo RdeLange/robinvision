@@ -65,6 +65,7 @@ def get_all_images_files(path):
     knownNames = []
     image_files = []
     imagePaths = []
+    print("[INFO] loading individual images => encode images => save to encodings file...")
     print("[INFO] quantifying faces...")
     # Getting the current work directory (cwd)
     thisdir = path
@@ -75,11 +76,8 @@ def get_all_images_files(path):
                 imagePaths.append(os.path.join(r, file))
     for (i, imagePath) in enumerate(imagePaths):
         # extract the person name from the image path
-        
         print("[INFO] processing image {}/{}".format(i + 1,len(imagePaths)))
-        print(imagePath)
         name = imagePath.split(os.path.sep)[-2]
-        #image_files.append([str(i)+"_"+name,imagePath])
         encoding = calc_face_encoding(imagePath)
         knownEncodings.append(encoding)
         knownNames.append(name)
@@ -89,34 +87,27 @@ def get_all_images_files(path):
 
 def learn_faces_dict(path):
     knownNames, knownEncodings = get_all_images_files(path)
-    
-    #print(image_files)
     data = {"encodings": knownEncodings, "names": knownNames}
     f = open(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs", "wb")
     f.write(pickle.dumps(data))
     f.close()
-    #faces_dict = data
-    #print (data)
     return data
 
 def get_faces_dict(path):
     print("[INFO] loading encodings...")
     try:
         data = pickle.loads(open(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs", "rb").read())
+        print("[INFO] encodings loaded from file...")
     except:
         data = learn_faces_dict(path)
+        print("[INFO] encodings loaded from individual images and saved to encoding file <encodings_db.frs> for accelerate future loading...")
     return data
 
 def detect_faces_in_image(file_stream):
     # Load the uploaded image file
-    
-    #try:
-    #    img = np.fromstring(file_stream, dtype=np.uint8)
-    #except:
     img = face_recognition.load_image_file(file_stream)
     # Get face encodings for any faces in the uploaded image
     uploaded_faces = face_recognition.face_encodings(img)
-
     # Defaults for the result object
     faces_found = len(uploaded_faces)
     matches = []
@@ -136,7 +127,6 @@ def detect_faces_in_image(file_stream):
             for idx, match in enumerate(match_results):
                 if match:
                     matchcount = matchcount +1
-                    #match = list(faces_dict['names'][idx])
                     match = faces_dict['names'][idx]
                     match_encoding = face_encodings[idx]
                     dist = face_recognition.face_distance([match_encoding],
@@ -163,15 +153,12 @@ def detect_faces_in_image(file_stream):
                 matches.append("Unknown")
                 distances.append(0)
                 faces2.append({'name': "unknown", 'matched':False,'confidence': int((float((0))*100)+0.5)/100.0})  
-    
     response = {'success': True,'facesCount': faces_found,'faces':faces2}
     response_json = json.dumps(response)
-    #data = {"count": faces_found, "faces": faces}
     return response_json
 
 # function to get unique names from total trained set of images
 def unique(list1):
-     
     # insert the list to the set
     list_set = set(list1)
     # convert the set to the list
@@ -182,18 +169,13 @@ def remove_person(personname):
     path = os.path.join(os.path.abspath(app.config['FACES_FOLDER']), personname)
     shutil.rmtree(path, ignore_errors=True)
 
-
-
 # <Picture functions> #
 
 # <Controller>
 
-
 @app.route('/', methods=['POST'])
 def web_recognize():
     file = request.files['file']
-    #file = extract_image(request)
-
     if file and is_picture(file.filename):
         # The image file seems valid! Detect faces and return the result.
         return detect_faces_in_image(file)
@@ -205,7 +187,6 @@ def web_recognize():
 #POST DATA SHOULD BE PART OF JSON LIKE {'base64': imagedata}
 def web_faceboxemulator():
     r = request
-    #print(r.get_json())
     originimg =base64.b64decode(r.get_json()['base64'])
     with open(app.config['TEMP_FOLDER']+"/temp_upload_image.jpg", 'wb') as f:
         f.write(originimg)
@@ -221,28 +202,18 @@ def web_train():
     print("Training Started")
     global faces_dict
     names = []
-    print(faces_dict)
     faces_dict = learn_faces_dict(app.config['FACES_FOLDER'])
     for (i, name) in enumerate(faces_dict['names']):
         names.append(name)
     uniquenames = unique(names)
-    print(uniquenames)
     return jsonify(uniquenames)
 
 @app.route('/addface', methods=['POST'])
 def web_addfaces():
     if 'id' not in request.args:
         raise BadRequest("Identifier for the face was not given!")
-
     if request.method == 'POST':
         image = request.files['image']
-        #try:
-        #    new_encoding = calc_face_encoding(image)
-        #    faces_dict['names'].append(request.args.get('id'))
-        #    faces_dict['encodings'].append(new_encoding)
-        #except Exception as exception:
-        #    raise BadRequest(exception)
-
         filename = secure_filename(image.filename)
         if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'))):
            try:
@@ -250,11 +221,7 @@ def web_addfaces():
            except OSError:
                return False
                pass
-        #contents = image.read()
-        # do something with file contents
         image.save(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'),filename))
-       
-        
         try:
             new_encoding = calc_face_encoding(image)
             faces_dict['names'].append(request.args.get('id'))
@@ -262,12 +229,10 @@ def web_addfaces():
         except Exception as exception:
             raise BadRequest(exception)
         image.close()
-
     names = []
     for (i, name) in enumerate(faces_dict['names']):
          names.append(name)
          uniquenames = unique(names)
-
     return jsonify(uniquenames)
 
 
@@ -285,38 +250,28 @@ def web_faces():
     
 @app.route('/removeface', methods=['DELETE'])
 def web_removefaces():
-    
-    names = []
-    
     # DELETE
-    
+    names = []
     if 'id' not in request.args:
         raise BadRequest("Identifier for the face was not given!")
-
     if request.method == 'DELETE':
         remove_person(request.args.get('id'))
-        #faces_dict.pop(request.args.get('id'))
-    
         for (i, name) in enumerate(faces_dict['names']):
             if name == request.args.get('id'):
                faces_dict['names'].pop(i)
                faces_dict['encodings'].pop(i)
-    names = []
     for (i, name) in enumerate(faces_dict['names']):
          names.append(name)
          uniquenames = unique(names)
-
     return jsonify(uniquenames)
 
 def extract_image(request):
     # Check if a valid image file was uploaded
     if 'file' not in request.files:
         raise BadRequest("Missing file parameter!")
-
     file = request.files['file']
     if file.filename == '':
         raise BadRequest("Given file is invalid")
-
     return file
 # </Controller>
 
@@ -325,8 +280,6 @@ if __name__ == "__main__":
     print("[INFO] Starting by generating encodings for found images...")
     # Calculate known faces
     faces_dict = get_faces_dict(app.config['FACES_FOLDER'])
-    print(faces_dict)
-
     # Start app
     print("[INFO] Starting WebServer...")
 app.run(host='0.0.0.0', port=8080, debug=False)
