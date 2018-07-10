@@ -4,7 +4,7 @@ This project provides a docker image which offers a web service to recognize kno
 
 On top of that I included a slightly adjusted KCFinder implementation so you can manage your face images via a browser and trigger the 'learn faces API.
 
-....by the way, I got some questions on why this is called Robin Vision. It is because I 'named' my home autmation setup Robin.....
+....by the way, I got some questions on why this is called Robin Vision. It is because I gave my home automation setup the 'name' Robin (as per famous Dutch television show 'Bassie and Adriaan').....
 
 ## Get started
 
