@@ -60,6 +60,7 @@ For reference, the API endpoint is /facebox/check. It will only emulates the bas
 
 I have added a webinterface to manage your images and to trigger the training of the system (after adding or removing imgages/persons)
 The interface is based on KCFinder. The images are managed in folders under the `files` main folder. Every folder represents a person, the name of the person is the folder name. In the folders you can add/delete images of that specific person. After any change in the person/image database, please make sure to push the train button to get the system retrained. The system will retrain itself after any system (container) relaunch by default.
+Just browse to `http://localhost:80`
 
 
 ## Notes
