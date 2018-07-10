@@ -1,0 +1,1 @@
+This folder will contain the encoding file. It will be generated upon first run, anytime when the image set is retrained or the container is restarted
