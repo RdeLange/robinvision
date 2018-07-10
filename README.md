@@ -1,6 +1,6 @@
 # Robin Vision - Docker image
 
-This project provides a docker image which offers a web service to recognize known faces on images. It's based on the great [ageitgey/face_recognition](https://github.com/ageitgey/face_recognition) and [JanLoebel/face_recognition] (https://github.com/JanLoebel/face_recognition) projects and just add additional web services using the Python `face_recognition`-library. This service also includes a FaceBox emulate API I create to use the FaceBox component in Home Assistant without having the limitations of the free FaceBox docker container.
+This project provides a docker image which offers a web service to recognize known faces on images. It's based on the great [ageitgey/face_recognition](https://github.com/ageitgey/face_recognition) and [JanLoebel/face_recognition](https://github.com/JanLoebel/face_recognition) projects and just add additional web services using the Python `face_recognition`-library. This service also includes a FaceBox emulate API I create to use the FaceBox component in Home Assistant without having the limitations of the free FaceBox docker container.
 
 On top of that I included a slightly adjusted KCFinder implementation so you can manage your face images via a browser and trigger the 'learn faces API.
 
