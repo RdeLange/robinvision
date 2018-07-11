@@ -221,19 +221,20 @@ def web_train():
 def web_addfaces():
     if 'id' not in request.args:
         raise BadRequest("Identifier for the face was not given!")
+    personname = request.args.get('id').replace(" ", "_")
     if request.method == 'POST':
         file = request.files['file']
         filename = secure_filename(file.filename)
-        if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'))):
+        if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],personname)):
            try:
-               os.makedirs(os.path.join(app.config['FACES_FOLDER'],request.args.get('id')))
+               os.makedirs(os.path.join(app.config['FACES_FOLDER'],personname))
            except OSError:
                return False
                pass
-        file.save(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'),filename))
+        file.save(os.path.join(app.config['FACES_FOLDER'],personname,filename))
         try:
             new_encoding = calc_face_encoding(file)
-            faces_dict['names'].append(request.args.get('id'))
+            faces_dict['names'].append(personname)
             faces_dict['encodings'].append(new_encoding)
         except Exception as exception:
             raise BadRequest(exception)
@@ -247,21 +248,22 @@ def web_addfaces():
 @app.route('/facebox/teach', methods=['POST'])
 #FACEBOX EMULATOR TO ADD AN ADDITIONAL IMAGE TO THE DATABASE
 def web_faceboxteach():
-    if 'id' not in request.args:
-        raise BadRequest("Identifier for the face was not given!")
+    if 'name' not in request.args:
+        raise BadRequest("Name for the face was not given!")
+    personname = request.args.get('name').replace(" ", "_")
     if request.method == 'POST':
         file = request.files['file']
         filename = secure_filename(file.filename)
-        if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'))):
+        if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],personname)):
            try:
-               os.makedirs(os.path.join(app.config['FACES_FOLDER'],request.args.get('id')))
+               os.makedirs(os.path.join(app.config['FACES_FOLDER'],personname))
            except OSError:
                return False
                pass
-        file.save(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'),filename))
+        file.save(os.path.join(app.config['FACES_FOLDER'],personname,filename))
         try:
             new_encoding = calc_face_encoding(file)
-            faces_dict['names'].append(request.args.get('id'))
+            faces_dict['names'].append(personname)
             faces_dict['encodings'].append(new_encoding)
         except Exception as exception:
             raise BadRequest(exception)
