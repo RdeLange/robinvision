@@ -108,6 +108,11 @@ def detect_faces_in_image(file_stream):
     img = face_recognition.load_image_file(file_stream)
     # Get face encodings for any faces in the uploaded image
     uploaded_faces = face_recognition.face_encodings(img)
+    face_rects_temp = face_recognition.face_locations(img)
+    face_rects = []
+    for (i, facerect) in enumerate(face_rects_temp):
+        face_rects.append({ "top": face_rects_temp[i][0], "left": face_rects_temp[i][3], "width": face_rects_temp[i][1]-face_rects_temp[i][3],"height": face_rects_temp[i][2]-face_rects_temp[i][0]})
+    #top, right, bottom, lef
     # Defaults for the result object
     faces_found = len(uploaded_faces)
     matches = []
@@ -120,7 +125,9 @@ def detect_faces_in_image(file_stream):
     if faces_found:
         for (i, encoding) in enumerate(faces_dict['encodings']):
             face_encodings.append(encoding)
+        facecount = 0
         for uploaded_face in uploaded_faces:
+            facecount = facecount+1
             match_results = face_recognition.compare_faces(
                 face_encodings, uploaded_face)
             matchcount = 0
@@ -137,22 +144,23 @@ def detect_faces_in_image(file_stream):
                             if distances[matchindex] > dist:
                                distances[matchindex] = dist 
                                faces[matchindex] = {"id":match, "dist": dist} 
-                               faces2[matchindex] = {'name': match, 'matched':True,'confidence': int((float((1-dist))*100)+0.5)/100.0}
+                               faces2[matchindex] = {'rect':face_rects[facecount-1], 'id': "dummy.jpg",'name': match, 'matched':True,'confidence': int((float((1-dist))*100)+0.5)/100.0}
                         else:
                             faces.append({"id":match, "dist": dist})
                             matches.append(match)
                             distances.append(dist)
-                            faces2.append({'name': match, 'matched':True,'confidence': int((float((1-dist))*100)+0.5)/100.0})
+                            faces2.append({'rect':face_rects[facecount-1], 'id': "dummy.jpg",'name': match, 'matched':True,'confidence': int((float((1-dist))*100)+0.5)/100.0})
                     else:
                         faces.append({"id":match, "dist": dist})
                         matches.append(match)
                         distances.append(dist)
-                        faces2.append({'name': match, 'matched':True,'confidence': int((float((1-dist))*100)+0.5)/100.0})
+                        faces2.append({'rect':face_rects[facecount-1], 'id': "dummy.jpg",'name': match, 'matched':True,'confidence': int((float((1-dist))*100)+0.5)/100.0})
             if matchcount == 0:
                 faces.append({"id":"Unknown", "dist": 0})
                 matches.append("Unknown")
                 distances.append(0)
-                faces2.append({'name': "unknown", 'matched':False,'confidence': int((float((0))*100)+0.5)/100.0})  
+                faces2.append({'rect':face_rects[facecount-1], 'id': "dummy.jpg",'name': "unknown", 'matched':False,'confidence': int((float((0))*100)+0.5)/100.0})  
+        
     response = {'success': True,'facesCount': faces_found,'faces':faces2}
     response_json = json.dumps(response)
     return response_json
@@ -208,32 +216,58 @@ def web_train():
     uniquenames = unique(names)
     return jsonify(uniquenames)
 
+
 @app.route('/addface', methods=['POST'])
 def web_addfaces():
     if 'id' not in request.args:
         raise BadRequest("Identifier for the face was not given!")
     if request.method == 'POST':
-        image = request.files['image']
-        filename = secure_filename(image.filename)
+        file = request.files['file']
+        filename = secure_filename(file.filename)
         if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'))):
            try:
                os.makedirs(os.path.join(app.config['FACES_FOLDER'],request.args.get('id')))
            except OSError:
                return False
                pass
-        image.save(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'),filename))
+        file.save(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'),filename))
         try:
-            new_encoding = calc_face_encoding(image)
+            new_encoding = calc_face_encoding(file)
             faces_dict['names'].append(request.args.get('id'))
             faces_dict['encodings'].append(new_encoding)
         except Exception as exception:
             raise BadRequest(exception)
-        image.close()
+        file.close()
     names = []
     for (i, name) in enumerate(faces_dict['names']):
          names.append(name)
          uniquenames = unique(names)
     return jsonify(uniquenames)
+
+@app.route('/facebox/teach', methods=['POST'])
+#FACEBOX EMULATOR TO ADD AN ADDITIONAL IMAGE TO THE DATABASE
+def web_faceboxteach():
+    if 'id' not in request.args:
+        raise BadRequest("Identifier for the face was not given!")
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'))):
+           try:
+               os.makedirs(os.path.join(app.config['FACES_FOLDER'],request.args.get('id')))
+           except OSError:
+               return False
+               pass
+        file.save(os.path.join(app.config['FACES_FOLDER'],request.args.get('id'),filename))
+        try:
+            new_encoding = calc_face_encoding(file)
+            faces_dict['names'].append(request.args.get('id'))
+            faces_dict['encodings'].append(new_encoding)
+        except Exception as exception:
+            raise BadRequest(exception)
+        file.close()
+    feedback = {"success": True}
+    return jsonify(feedback)
 
 
 @app.route('/faces', methods=['GET'])
