@@ -299,12 +299,12 @@ def web_faces():
 def web_removefaces():
     # DELETE
     names = []
-    if 'id' not in request.args:
+    if 'name' not in request.args:
         raise BadRequest("Identifier for the face was not given!")
     if request.method == 'DELETE':
-        remove_person(request.args.get('id'))
+        remove_person(request.args.get('name'))
         for (i, name) in enumerate(faces_dict['names']):
-            if name == request.args.get('id'):
+            if name == request.args.get('name'):
                faces_dict['names'].pop(i)
                faces_dict['encodings'].pop(i)
     for (i, name) in enumerate(faces_dict['names']):
