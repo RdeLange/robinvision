@@ -29,7 +29,7 @@ docker run -d -p 8080:8080 -p 80:80 robinvision
 ### Register known faces
 
 Simple `POST` an image-file to the `/addface` endpoint and provide an identifier.
-`curl -X POST -F "file=@person1.jpg" http://localhost:8080/addface?id=person1`
+`curl -X POST -F "file=@person1.jpg" http://localhost:8080/addface?name=person1`
 
 ### Read registered faces
 
@@ -43,7 +43,7 @@ Simple `POST` an image-file to the web service.
 
 ### Delete persons
 Simple `DELETE` a person from the web service
-`curl -X DELETE http://localhost:8080/id=person1`
+`curl -X DELETE http://localhost:8080/removeface?name=person1`
 
 ### Train the system
 
@@ -52,10 +52,13 @@ Simple `GET` the `/train` endpoint.
 
 ### FaceBox emulation
 
-In order to be able to make use of this service from the excelent Home Assistant software I have created an API which emulates the FaceBox docker container API. 
+In order to be able to make use of this service from the excelent Home Assistant software I have created an API which emulates the FaceBox docker container API for the /facebox/check & /facebox/teach endpoints 
 Just setup the FaceBox component in Home Assistant as per Home Assistant documentation, use the ip address of the RobinVision container as the ip address and the port is 8080. Have Fun
-For reference, the API endpoint is /facebox/check. It will only emulates the base64 json implementation (as used in the Home Assistant component)
+For reference, the API endpoint /facebox/check will only emulates the base64 json implementation (as used in the Home Assistant component). If you would like to check an individual image file you can use the example as given above under ###Identify faces on image
 
+Facebox teach endpoint
+`curl -X POST -F "file=@Ronald3.jpg" "http://localhost:8080/facebox/teach?name=Ronaldir&id=Dummy.jpg"`
+(id is optional)
 
 
 ### Web Interface
