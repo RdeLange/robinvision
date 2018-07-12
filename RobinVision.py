@@ -11,6 +11,7 @@ import pickle
 import shutil
 import base64
 import json
+import re
 
 
 # Global storage for images
@@ -25,7 +26,7 @@ app.config['FACES_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
 app.config['ENCODINGS_FOLDER'] = ENCODINGS_FOLDER
 CORS(app)
-
+gdata = []
 # <Picture functions> #
 
 
@@ -219,9 +220,12 @@ def web_train():
 
 @app.route('/addface', methods=['POST'])
 def web_addfaces():
-    if 'id' not in request.args:
-        raise BadRequest("Identifier for the face was not given!")
-    personname = request.args.get('id').replace(" ", "_")
+    if 'name' in request.args:
+        personname = request.args.get('name').replace(" ", "_")
+    elif 'name' in request.form:
+        personname = request.form.get('name').replace(" ", "_")
+    else:
+        raise BadRequest("Name for the face was not given!")
     if request.method == 'POST':
         file = request.files['file']
         filename = secure_filename(file.filename)
@@ -250,9 +254,12 @@ def web_addfaces():
 @app.route('/facebox/teach', methods=['POST'])
 #FACEBOX EMULATOR TO ADD AN ADDITIONAL IMAGE TO THE DATABASE
 def web_faceboxteach():
-    if 'name' not in request.args:
+    if 'name' in request.args:
+        personname = request.args.get('name').replace(" ", "_")
+    elif 'name' in request.form:
+        personname = request.form.get('name').replace(" ", "_")
+    else:
         raise BadRequest("Name for the face was not given!")
-    personname = request.args.get('name').replace(" ", "_")
     if request.method == 'POST':
         file = request.files['file']
         filename = secure_filename(file.filename)
