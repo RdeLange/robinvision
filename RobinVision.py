@@ -236,6 +236,8 @@ def web_addfaces():
             new_encoding = calc_face_encoding(file)
             faces_dict['names'].append(personname)
             faces_dict['encodings'].append(new_encoding)
+            if os.path.exists(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs"):
+                os.remove(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs")
         except Exception as exception:
             raise BadRequest(exception)
         file.close()
@@ -265,6 +267,8 @@ def web_faceboxteach():
             new_encoding = calc_face_encoding(file)
             faces_dict['names'].append(personname)
             faces_dict['encodings'].append(new_encoding)
+            if os.path.exists(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs"):
+                os.remove(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs")
         except Exception as exception:
             raise BadRequest(exception)
         file.close()
