@@ -67,6 +67,8 @@ I have added a webinterface to manage your images and to trigger the training of
 The interface is based on KCFinder. The images are managed in folders under the `files` main folder. Every folder represents a person, the name of the person is the folder name. In the folders you can add/delete images of that specific person. After any change in the person/image database, please make sure to push the train button to get the system retrained. The system will retrain itself after any system (container) relaunch by default.
 Just browse to `http://localhost:80`
 
+![alt text](https://raw.githubusercontent.com/RdeLange/robinvision/master/KCFinder_RV.jpeg)
+
 
 ## Notes
 
