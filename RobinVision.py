@@ -12,6 +12,9 @@ import shutil
 import base64
 import json
 import re
+from PIL import Image
+import numpy as np
+from datetime import datetime
 
 
 # Global storage for images
@@ -25,8 +28,9 @@ app = Flask(__name__)
 app.config['FACES_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
 app.config['ENCODINGS_FOLDER'] = ENCODINGS_FOLDER
+app.config['SAVE_UNKNOWN'] = True
 CORS(app)
-gdata = []
+
 # <Picture functions> #
 
 
@@ -50,16 +54,13 @@ def calc_face_encoding(image):
 
     # If more than one face on the given image was found -> error
     if len(faces) > 1:
-        raise Exception(
-            "Found more than one face in the given training image.")
+        return False, None
 
     # If none face on the given image was found -> error
     if not faces:
-        raise Exception("Could not find any face in the given training image.")
+        return False, None
+    return True, faces[0]
 
-    return faces[0]
-
-#############################################################RDL START
 
 def get_all_images_files(path):
     knownEncodings = []
@@ -73,18 +74,37 @@ def get_all_images_files(path):
     # r=root, d=directories, f = files
     for r, d, f in os.walk(thisdir):
         for file in f:
-            if is_picture(file) == True:
-                imagePaths.append(os.path.join(r, file))
+            imgpath = os.path.join(r, file)
+            if not "/Unknown/" in imgpath:
+                if is_picture(file) == True:
+                    imagePaths.append(imgpath)
     for (i, imagePath) in enumerate(imagePaths):
         # extract the person name from the image path
-        print("[INFO] processing image {}/{}".format(i + 1,len(imagePaths)))
+        print("[INFO] processing image {}/{}".format(i + 1,len(imagePaths))+" - "+ imagePath)
         name = imagePath.split(os.path.sep)[-2]
-        encoding = calc_face_encoding(imagePath)
-        knownEncodings.append(encoding)
-        knownNames.append(name)
+        success, encoding = calc_face_encoding(imagePath)
+        if success == True:
+            knownEncodings.append(encoding)
+            knownNames.append(name)
     return knownNames,knownEncodings
 
-#############################################################RDL END
+def save_unknown(input_image, left, top, right, bottom):
+    img = Image.open(input_image)
+    imagepath = os.path.join(os.path.abspath(app.config['FACES_FOLDER']), "Unknown")
+    if not os.path.exists(imagepath):
+        try:
+            os.makedirs(imagepath)
+            os.chmod(imagepath, 0o777)
+
+        except OSError:
+            return False
+            pass
+    timestr = datetime.now().strftime("%Y%m%d-%H%M%S%f")
+    unknownface = img.crop((left, top, right, bottom))
+    unknownface.save(os.path.join(os.path.abspath(app.config['FACES_FOLDER']), "Unknown", "Unknown_"+timestr+".png"))
+    os.chmod(os.path.join(os.path.abspath(app.config['FACES_FOLDER']), "Unknown", "Unknown_"+timestr+".png"), 0o777)
+    return True
+
 
 def learn_faces_dict(path):
     knownNames, knownEncodings = get_all_images_files(path)
@@ -161,7 +181,8 @@ def detect_faces_in_image(file_stream):
                 matches.append("Unknown")
                 distances.append(0)
                 faces2.append({'rect':face_rects[facecount-1], 'id': "dummy.jpg",'name': "unknown", 'matched':False,'confidence': int((float((0))*100)+0.5)/100.0})  
-        
+                if app.config['SAVE_UNKNOWN'] == True:
+                    result = save_unknown(file_stream, face_rects[facecount-1]['left'], face_rects[facecount-1]['top'], face_rects[facecount-1]['width']+face_rects[facecount-1]['left'], face_rects[facecount-1]['top']+face_rects[facecount-1]['height'])
     response = {'success': True,'facesCount': faces_found,'faces':faces2}
     response_json = json.dumps(response)
     return response_json
@@ -232,6 +253,7 @@ def web_addfaces():
         if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],personname)):
            try:
                os.makedirs(os.path.join(app.config['FACES_FOLDER'],personname))
+               os.chmod(os.path.join(app.config['FACES_FOLDER'],personname), 0o777)
            except OSError:
                return False
                pass
@@ -245,6 +267,7 @@ def web_addfaces():
         except Exception as exception:
             raise BadRequest(exception)
         file.close()
+        os.chmod(os.path.join(app.config['FACES_FOLDER'],personname,filename), 0o777) 
     names = []
     for (i, name) in enumerate(faces_dict['names']):
          names.append(name)
@@ -266,6 +289,7 @@ def web_faceboxteach():
         if not os.path.exists(os.path.join(app.config['FACES_FOLDER'],personname)):
            try:
                os.makedirs(os.path.join(app.config['FACES_FOLDER'],personname))
+               os.chmod(os.path.join(app.config['FACES_FOLDER'],personname), 0o777)
            except OSError:
                return False
                pass
@@ -279,6 +303,7 @@ def web_faceboxteach():
         except Exception as exception:
             raise BadRequest(exception)
         file.close()
+        os.chmod(os.path.join(app.config['FACES_FOLDER'],personname,filename), 0o777) 
     feedback = {"success": True}
     return jsonify(feedback)
 
