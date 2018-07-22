@@ -14,7 +14,12 @@ import json
 import re
 from PIL import Image
 import numpy as np
-from datetime import datetime
+from datetime import datetime as dt
+from datetime import timedelta
+import sys
+import sched
+import time
+import datetime
 
 
 # Global storage for images
@@ -24,11 +29,16 @@ faces_dict = {}
 UPLOAD_FOLDER = '/var/www/html/faces/files'
 TEMP_FOLDER = '/root/app'
 ENCODINGS_FOLDER = '/root/encodings'
+SAVE_UNKNOWN = True
+SCHEDULE_ENCODINGS_SAVE = True
+SCHEDULE_ENCODINGS_TIME = 2
 app = Flask(__name__)
 app.config['FACES_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
 app.config['ENCODINGS_FOLDER'] = ENCODINGS_FOLDER
-app.config['SAVE_UNKNOWN'] = True
+app.config['SAVE_UNKNOWN'] = SAVE_UNKNOWN
+app.config['SCHEDULE_ENCODINGS_SAVE'] = SCHEDULE_ENCODINGS_SAVE
+app.config['SCHEDULE_ENCODINGS_TIME'] = SCHEDULE_ENCODINGS_TIME
 CORS(app)
 
 # <Picture functions> #
@@ -99,7 +109,7 @@ def save_unknown(input_image, left, top, right, bottom):
         except OSError:
             return False
             pass
-    timestr = datetime.now().strftime("%Y%m%d-%H%M%S%f")
+    timestr = dt.now().strftime("%Y%m%d-%H%M%S%f")
     unknownface = img.crop((left, top, right, bottom))
     unknownface.save(os.path.join(os.path.abspath(app.config['FACES_FOLDER']), "Unknown", "Unknown_"+timestr+".png"))
     os.chmod(os.path.join(os.path.abspath(app.config['FACES_FOLDER']), "Unknown", "Unknown_"+timestr+".png"), 0o777)
@@ -200,6 +210,39 @@ def remove_person(personname):
     shutil.rmtree(path, ignore_errors=True)
 
 # <Picture functions> #
+
+# <Encodings Save Scheduler> #
+
+def enable_schedule():
+    print("[INFO] Scheduled encodings to disk is enabled")
+    print("[INFO] Schedules encodings will be saved daily at " + str(app.config['SCHEDULE_ENCODINGS_TIME']) + ":00 hours (on 24:00 hours scale)")
+    daily_time = datetime.time(app.config['SCHEDULE_ENCODINGS_TIME'])
+    first_time = dt.combine(dt.now(), daily_time)
+    if first_time < dt.now():
+        first_time = first_time+ timedelta(days=1)
+    print("[INFO] First Scheduled run will be at " + first_time.strftime("%Y%m%d-%H:00"))
+    currentevent = scheduler.enterabs(time.mktime(first_time.timetuple()), 1,run_schedule, ("run for the first time",))
+    scheduler.run(blocking=False)
+    return "scheduler enabled"
+
+def disable_schedule():
+    print("[INFO] Scheduled encodings to disk is disabled")
+    if currentevent != "":
+        scheduler.cancel(currentevent)
+    return "scheduler disabled"
+
+def run_schedule(message):
+    print("Scheduled Training Started")
+    global faces_dict
+    names = []
+    faces_dict = learn_faces_dict(app.config['FACES_FOLDER'])
+    for (i, name) in enumerate(faces_dict['names']):
+        names.append(name)
+    #uniquenames = unique(names)
+    t = dt.combine(dt.now() + datetime.timedelta(days=1), str(daily_time))
+    currentevent = scheduler.enterabs(time.mktime(t.timetuple()), 1, run_schedule, ('Running again',))    
+    #return jsonify(uniquenames)
+    return "Scheduler finished"
 
 # <Controller>
 
@@ -307,6 +350,64 @@ def web_faceboxteach():
     feedback = {"success": True}
     return jsonify(feedback)
 
+@app.route('/saveunknown', methods=['POST'])
+#ENABLE OR DISABLE SCHEDULER TO SAVE ENCODINGS TO DISK AT A GIVEN TIME
+def web_saveunknown():
+    if 'enable' in request.args:
+        enable_remember = request.args.get('enable').replace(" ", "_")
+    elif 'enable' in request.form:
+        enable_remember = request.form.get('enable').replace(" ", "_")
+    else:
+        raise BadRequest("No valid input given, please specify enable=yes OR enable=no")
+    if enable_remember not in ("yes", "no"):
+        raise BadRequest("No valid input given, please specify enable=yes OR enable=no")
+    if enable_remember == "yes":
+        app.config['SAVE_UNKNOWN'] = True
+        feedback = {"success": True, "message": "Unknown faces will now be remembered in the Unknown folder and can be accessed via localhost:80"}
+    elif enable_remember == "no":
+        app.config['SAVE_UNKNOWN'] = False
+        feedback = {"success": True, "message": "Unknown faces will no longer be remembered but directly deleted"}
+    else:
+        feedback = {"success": False, "message": "Something went wrong. Settings have not been changed"}
+    return jsonify(feedback)
+
+
+@app.route('/scheduler', methods=['POST'])
+#ENABLE OR DISABLE SCHEDULER TO SAVE ENCODINGS TO DISK AT A GIVEN TIME
+def web_scheduler():
+    if 'enable' in request.args:
+        enable_scheduler = request.args.get('enable').replace(" ", "_")
+    elif 'enable' in request.form:
+        enable_scheduler = request.form.get('enable').replace(" ", "_")
+    else:
+        raise BadRequest("No valid input given, please specify enable=yes OR enable=no")
+    if enable_scheduler not in ("yes", "no"):
+        raise BadRequest("No valid input given, please specify enable=yes OR enable=no")
+    if enable_scheduler == "yes":
+        if 'time' in request.args:
+            time_scheduler = int(request.args.get('time'))
+        elif 'time' in request.form:
+            time_scheduler = int(request.form.get('time'))
+        else:
+            raise BadRequest("No valid time given (please specify between 0 and 23")
+        if time_scheduler not in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23):
+            raise BadRequest("No valid time given (please specify between 0 and 23)")
+    
+    if enable_scheduler == "no":
+        app.config['SCHEDULE_ENCODINGS_SAVE'] = False
+        disable_schedule()
+        feedback = {"succes": True, "message": "Schedule disabled"}
+    elif enable_scheduler == "yes":
+        app.config['SCHEDULE_ENCODINGS_SAVE'] = True
+        app.config['SCHEDULE_ENCODINGS_TIME'] = time_scheduler
+        disable_schedule()
+        daily_time = datetime.time(app.config['SCHEDULE_ENCODINGS_TIME'])
+        currentevent = ""
+        enable_schedule()
+        feedback = {"succes": True, "message": "Scheduler enabled to run everyday at "+str(time_scheduler)+ ":00 hours (on a scale of 24)"}
+    else:
+        feedback = {"succes": False, "message": "Something went wrong, nothing has been changed in the settings"}
+    return jsonify(feedback)
 
 @app.route('/faces', methods=['GET'])
 def web_faces():
@@ -352,6 +453,15 @@ if __name__ == "__main__":
     print("[INFO] Starting by generating encodings for found images...")
     # Calculate known faces
     faces_dict = get_faces_dict(app.config['FACES_FOLDER'])
+    scheduler = sched.scheduler(time.time, time.sleep)
+    daily_time = datetime.time(app.config['SCHEDULE_ENCODINGS_TIME'])
+    currentevent = ""
+
+    # Set Scheduler if enabled to save encodings once a day at a given time to disk for faster startup
+    if app.config['SCHEDULE_ENCODINGS_SAVE'] == True:
+        enable_schedule()    
+    else:
+        disable_schedule()
     # Start app
     print("[INFO] Starting WebServer...")
 app.run(host='0.0.0.0', port=8080, debug=False)
