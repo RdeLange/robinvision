@@ -50,17 +50,30 @@ Simple `GET` the `/train` endpoint.
 `curl http://localhost:8080/train`
 
 ### Enable/Disable saving of unknown faces
-With this function you can enable or disable saving the images of unknown faces. Saving these faces can be handy as you can assign persons to these faces/images later via the Web Interface. As an example: you best friend is not part of the trained face recognition system yet. When your friend visits your house and you have a system running which takes a picture of your living room once every x seconds, the system will classify your friend as an unknown person. By saving the image of his face, you can later update your system by creating a folder with your friends name and moving that image to this folder (all via the web interface). Now your friend will become part of the trained system.
+With this function you can enable or disable saving the images of unknown faces. Saving these faces can be handy as you can assign persons to these faces/images later via the Web Interface. As an example: your best friend is not part of the trained face recognition system yet. When your friend visits your house and you have a system running which takes a picture of your living room once every x seconds, the system will classify your friend as an unknown person. By saving the image of his face, you can later update your system by creating a folder with your friends name and moving that image to this folder (all via the web interface). Now your friend will become part of the trained system.
 
 Simple `POST` the `/saveunknown` endpoint.
 `curl -X POST "http://localhost:8080/saveunknown?enable=yes"`
 
 ### Enable/Disable scheduling of saving the trained encodings to disk
 Saving the trained encodings to disk is benefitial when you restart your system. The individual images of faces does not have to be trained with a restart, the system simply loads the data from a file on the disk. On the other hand, dumping a changed dataset to disk takes time and CPU. As such I implemented a function which schedules this task at a moment in time it will not interfere with other workloads.
-You can enable or disable this function. the time is always on a full hours (between 0 and 23)
+You can enable or disable this function. The time is always on a full hours (between 0 and 23) and minutes (between 0 and 59). Time should be given in UTC!
 
 Simple `POST` the `/scheduler` endpoint.
-`curl -X POST "http://localhost:8080/scheduler?enable=ye&time=22"`
+`curl -X POST "http://localhost:8080/scheduler?enable=ye&hour=22&minutes=45"`
+
+### Get the next scheduled saving of training encodings to disk
+It will return json like:
+[
+  {
+    "ScheduleId": 0, 
+    "ScheduleTime": "20180724-13:46", 
+    "ScheduleTimeStamp": 1532439960.0
+  }
+]
+
+Simple `GET` the `/getschedule` endpoint.
+`curl http://localhost:8080/getschedule`
 
 ### FaceBox emulation
 
