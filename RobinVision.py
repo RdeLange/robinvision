@@ -231,8 +231,8 @@ def remove_person(personname):
     #remove all entries in dataset for this name
     for (i, name) in enumerate(faces_dict['names']):
        if name == personname:
-          face_dict['names'].pop(i)
-          face_dict['encodings'].pop(i)
+          faces_dict['names'].pop(i)
+          faces_dict['encodings'].pop(i)
     #remove saved pickle file to indicate that new pickle file needs to be created (will be automatically triggered on next restart or per enabled schedule)
     if os.path.exists(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs"):
         os.remove(app.config['ENCODINGS_FOLDER']+"/encodings_db.frs")
