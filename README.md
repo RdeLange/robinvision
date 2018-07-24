@@ -60,7 +60,7 @@ Saving the trained encodings to disk is benefitial when you restart your system.
 You can enable or disable this function. The time is always on a full hours (between 0 and 23) and minutes (between 0 and 59). Time should be given in UTC!
 
 Simple `POST` the `/scheduler` endpoint.
-`curl -X POST "http://localhost:8080/scheduler?enable=ye&hour=22&minutes=45"`
+`curl -X POST "http://localhost:8080/scheduler?enable=yes&hour=22&minutes=45"`
 
 ### Get the next scheduled saving of training encodings to disk
 It will return json like:
