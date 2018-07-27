@@ -94,6 +94,10 @@ Just browse to `http://localhost:80`
 
 ![alt text](https://raw.githubusercontent.com/RdeLange/robinvision/master/KCFinder_RV.jpeg)
 
+*NEW*
+It is now also possible to change basic configuration items via the web interface. Just click the FaceRecognition System Settings button in the toolbar and a dialog will appear where you can update the scheduler and unknown faces settings (see above API's for the description)
+
+![alt text](https://raw.githubusercontent.com/RdeLange/robinvision/master/FRConfig.png)
 
 ## Notes
 
