@@ -109,6 +109,9 @@ tr.selected:hover > td,
 #toolbar a[href="kcact:train"] span {
     background-image: url(img/icons/face_scan.png);
 }
+#toolbar a[href="kcact:frsettings"] span {
+    background-image: url(img/icons/frsettings.png);
+}
 #toolbar a[href="kcact:maximize"] span {
     background-image: url(img/icons/maximize.png);
 }

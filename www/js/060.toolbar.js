@@ -101,6 +101,16 @@ _.initToolbar = function() {
 
 //RDL TRAIN END
 
+//RDL FACERECOGNITION SYSTEM SETTING START
+    $('#toolbar a[href="kcact:frsettings"]').click(function() {
+        _.frsettings();
+        return false;
+    });
+
+//RDL FACERECOGNITION SYSTEM SETTING END
+
+
+
     _.initUploadButton();
 };
 
@@ -320,7 +330,7 @@ _.train = function() {
     var siteurl = window.location.href;
     siteurl = siteurl.slice(0,-1);
     siteurl = siteurl+':8080/train';
-    var html = '<div class="box about">' +'<div>RobinVision Face recognition by R de Lange</div>';
+    var html = '<div class="box about">' +'<div>Face Recognition System by R de Lange</div>';
     html += '<div id="checkver"><span class="loading"><span>' + _.label("Training Faces") + '</span></span></div>';
     html += '<div>' + _.label("Licenses:") + ' <a href="http://opensource.org/licenses/GPL-3.0" target="_blank">GPLv3</a> & <a href="http://opensource.org/licenses/LGPL-3.0" target="_blank">LGPLv3</a></div>' + '<div>Copyright &copy;2018 Ronald de Lange</div>' + '</div>';
 
@@ -345,6 +355,20 @@ _.train = function() {
             }
             });
         }, 1000);
+};
 
-       
-    };
+//FRSETTINGS BEGIN
+_.frsettings = function() {
+    var siteurl = window.location.href;
+    siteurl = siteurl.slice(0,-1);
+    //siteurl = siteurl+':8080/train';
+    //var formhtml = '<body id="main_body"></body>';
+    var formhtml =  '<iframe src="'+siteurl+ '/formtemplate/form.html" width="665" height="545"></iframe>';
+    var dlg = _.dialog(_.label("Face Recognition System Settings"), formhtml, {width: 680, height: 645});
+    //$("#body").load(siteurl+"/formtemplate/form.html");
+};
+//FRSETTINGS END
+
+
+
+

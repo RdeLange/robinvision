@@ -20,19 +20,37 @@ import sched
 import time
 import datetime
 import threading
+from configparser import SafeConfigParser
 
 
 # Global storage for images
 faces_dict = {}
+#load config
+param_scheduler = "disabled"
+param_saveunknown = "disabled"
+param_hour = "21"
+param_minutes = "00"
+frconfigparser = SafeConfigParser()
+frconfigparser.read('config.cfg')
+param_scheduler = frconfigparser.get('FRCONFIG', 'scheduler')
+param_saveunknown = frconfigparser.get('FRCONFIG', 'saveunknown')
+param_hour = int(frconfigparser.get('FRCONFIG', 'hour'))
+param_minutes = int(frconfigparser.get('FRCONFIG', 'minutes'))
 
 # Create flask app
 UPLOAD_FOLDER = '/var/www/html/faces/files'
 TEMP_FOLDER = '/root/app'
 ENCODINGS_FOLDER = '/root/encodings'
-SAVE_UNKNOWN = True
-SCHEDULE_ENCODINGS_SAVE = True
-SCHEDULE_ENCODINGS_HOUR = 13
-SCHEDULE_ENCODINGS_MINUTES = 46
+if param_saveunknown == "enabled":
+   SAVE_UNKNOWN = True
+else:
+   SAVE_UNKNOWN = False
+if param_scheduler == "enabled":
+   SCHEDULE_ENCODINGS_SAVE = True
+else:
+   SCHEDULE_ENCODINGS_SAVE = False
+SCHEDULE_ENCODINGS_HOUR = param_hour
+SCHEDULE_ENCODINGS_MINUTES = param_minutes
 app = Flask(__name__)
 app.config['FACES_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
@@ -42,6 +60,31 @@ app.config['SCHEDULE_ENCODINGS_SAVE'] = SCHEDULE_ENCODINGS_SAVE
 app.config['SCHEDULE_ENCODINGS_HOUR'] = SCHEDULE_ENCODINGS_HOUR
 app.config['SCHEDULE_ENCODINGS_MINUTES'] = SCHEDULE_ENCODINGS_MINUTES
 CORS(app)
+
+
+# <Config functions> #
+def save_config():
+    if app.config['SCHEDULE_ENCODINGS_SAVE'] == True:
+      value_scheduler = "enabled"
+    else:
+      value_scheduler = "disabled"
+    if app.config['SAVE_UNKNOWN'] == True:
+      value_saveunknown = "enabled"
+    else:
+      value_saveunknown = "disabled"
+    parser = SafeConfigParser()
+    parser.read('config.cfg')
+    for each_section in parser.sections():
+      parser.remove_section(each_section)
+    parser.add_section('FRCONFIG')
+    parser.set('FRCONFIG', 'scheduler', value_scheduler)
+    parser.set('FRCONFIG', 'saveunknown', value_saveunknown)
+    parser.set('FRCONFIG', 'hour', str(app.config['SCHEDULE_ENCODINGS_HOUR']))
+    parser.set('FRCONFIG', 'minutes', str(app.config['SCHEDULE_ENCODINGS_MINUTES']))
+    new_config_file = open('config.cfg', 'w')
+    parser.write(new_config_file)
+    new_config_file.close()
+    return "succes"
 
 # <Picture functions> #
 
@@ -408,6 +451,7 @@ def web_saveunknown():
         feedback = {"success": True, "message": "Unknown faces will no longer be remembered but directly deleted"}
     else:
         feedback = {"success": False, "message": "Something went wrong. Settings have not been changed"}
+    save_config()
     return jsonify(feedback)
 
 @app.route('/scheduler', methods=['POST'])
@@ -454,6 +498,7 @@ def web_scheduler():
         feedback = {"succes": True, "message": "Scheduler enabled to run everyday at "+daily_time.strftime("%H:%M")+ " hours (on a scale of 24). All times in UTC!"}
     else:
         feedback = {"succes": False, "message": "Something went wrong, nothing has been changed in the settings"}
+    save_config()
     return jsonify(feedback)
 
 @app.route('/getschedule', methods=['GET'])
@@ -464,6 +509,81 @@ def web_getschedule():
         for (i,event) in enumerate(scheduler.queue):
             events.append({"ScheduleId":i,"ScheduleTime":dt.fromtimestamp(event[0]).strftime("%Y%m%d-%H:%M"),"ScheduleTimeStamp":event[0]})
     return jsonify(events)
+
+@app.route('/getconfig', methods=['GET'])
+def web_getconfig():
+    if app.config['SAVE_UNKNOWN'] == True:
+        sue = "1"
+    else:
+        sue = "2"
+    if app.config['SCHEDULE_ENCODINGS_SAVE'] == True:
+        sese = "1"
+    else:
+        sese = "2"
+    shour = app.config['SCHEDULE_ENCODINGS_HOUR']
+    sminutes = app.config['SCHEDULE_ENCODINGS_MINUTES']
+    feedback = {"saveunknown_enabled":sue,"schedule_enabled":sese,"schedule_hour": shour,"schedule_minutes": sminutes}
+    return jsonify(feedback)
+
+@app.route('/submitconfig', methods=['POST'])
+def web_submitconfig():
+    if 'enable_s' in request.args:
+        enable_scheduler = request.args.get('enable_s').replace(" ", "_")
+    elif 'enable_s' in request.form:
+        enable_scheduler = request.form.get('enable_s').replace(" ", "_")
+    else:
+        raise BadRequest("No valid input given, please specify enable_s=1 OR enable_s=2")
+    if enable_scheduler not in ("1", "2"):
+        raise BadRequest("No valid input given, please specify enable_s=1 OR enable_s=2")
+    if enable_scheduler == "1":
+        if 'hour' in request.args:
+            hour_scheduler = int(request.args.get('hour'))
+        elif 'hour' in request.form:
+            hour_scheduler = int(request.form.get('hour'))
+        else:
+            raise BadRequest("No valid hour given (please specify between 0 and 23")
+        if hour_scheduler not in (0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23):
+            raise BadRequest("No valid time given (please specify between 0 and 23)")
+        if 'minutes' in request.args:
+            minutes_scheduler = int(request.args.get('minutes'))
+        elif 'minutes' in request.form:
+            minutes_scheduler = int(request.form.get('minutes'))
+        else:
+            minutes_scheduler = 0
+        if not (0 <= minutes_scheduler <= 59):
+            raise BadRequest("No valid time given (please specify between 0 and 59)")
+    
+    if enable_scheduler == "2":
+        app.config['SCHEDULE_ENCODINGS_SAVE'] = False
+        disable_schedule()
+        feedback = {"Schedulersucces": True, "message": "Schedule disabled"}
+    elif enable_scheduler == "1":
+        app.config['SCHEDULE_ENCODINGS_SAVE'] = True
+        app.config['SCHEDULE_ENCODINGS_HOUR'] = hour_scheduler
+        app.config['SCHEDULE_ENCODINGS_MINUTES'] = minutes_scheduler
+        disable_schedule()
+        daily_time = datetime.time(app.config['SCHEDULE_ENCODINGS_HOUR'],app.config['SCHEDULE_ENCODINGS_MINUTES'])
+        currentevent = ""
+        feedback = {"Schedulersucces": True, "message": "Schedule enabled"}
+        enable_schedule()
+    if 'enable_u' in request.args:
+        enable_remember = request.args.get('enable_u').replace(" ", "_")
+    elif 'enable_u' in request.form:
+        enable_remember = request.form.get('enable_u').replace(" ", "_")
+    else:
+        raise BadRequest("No valid input given, please specify enable_u=1 OR enable_u=2")
+    if enable_remember not in ("1", "2"):
+        raise BadRequest("No valid input given, please specify enable_u=1 OR enable_u=2")
+    if enable_remember == "1":
+        app.config['SAVE_UNKNOWN'] = True
+        feedback.update({"UnknownFacessuccess": True, "message": "Unknown faces will now be remembered in the Unknown folder and can be accessed via localhost:80"})
+    elif enable_remember == "2":
+        app.config['SAVE_UNKNOWN'] = False
+        feedback.update({"UnknownFacessuccess": True, "message": "Unknown faces will no longer be remembered but directly deleted"})
+    else:
+        feedback.update({"UnknownFacessuccess": False, "message": "Something went wrong. Settings have not been changed"})
+    save_config()
+    return jsonify(feedback)
 
 @app.route('/faces', methods=['GET'])
 def web_faces():

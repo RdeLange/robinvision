@@ -25,6 +25,7 @@
         <a href="kcact:settings"><span><?php echo $this->label("Settings") ?></span></a>
         <a href="kcact:maximize"><span><?php echo $this->label("Maximize") ?></span></a>
         <a href="kcact:train"><span><?php echo $this->label("Train Faces") ?></span></a>
+        <a href="kcact:frsettings"><span><?php echo $this->label("FaceRecognition System Settings") ?></span></a>
         <div id="loading"></div>
         </div>
     </div>

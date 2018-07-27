@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Face Recognition System Settings</title>
+<link rel="stylesheet" type="text/css" href="view.css" media="all">
+<script type="text/javascript" src="view.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+function loadconfig(){
+   var siteurl = window.location.href;
+   siteurl = siteurl.slice(0,-23);
+   siteurl = siteurl+':8080/getconfig';
+   var sue = "";
+   var sese = "";
+   var shour = "";
+   var sminutes = "";
+
+   $.ajax({
+     type: 'GET',
+     url: siteurl,
+     async: true,
+     dataType: 'json',
+     success: function (data) {
+       sue = data.saveunknown_enabled;
+       sese = data.schedule_enabled;
+       shour = data.schedule_hour;
+       sminutes = data.schedule_minutes;
+       document.getElementById("element_4_1").value = sue;
+       document.getElementById("element_5_1").value = sese ;
+       document.getElementById("element_1_1").value =shour.toString();
+       document.getElementById("element_1_2").value =sminutes.toString();
+       
+    }
+   });
+ 
+}
+//NEW
+jQuery(function($) {
+    // hook the submit action on the form
+    $("#form_19725").submit(function(event) {
+        // stop the form submitting
+        event.preventDefault();
+        // grab parameters
+        var siteurl = window.location.href;
+        siteurl = siteurl.slice(0,-23);
+        siteurl = siteurl+':8080/submitconfig';
+        sese = document.getElementById("element_5_1").value
+        sue = document.getElementById("element_4_1").value
+        shour = document.getElementById("element_1_1").value; 
+        sminutes = document.getElementById("element_1_2").value;
+        $.ajax({
+            type: 'POST',
+            data: {"enable_u":sue,"enable_s":sese,"hour":shour,"minutes":sminutes},
+            url: siteurl,
+            async: false,
+            success: function (data) {
+              document.getElementById("saveForm").value = "SuccessFully Submitted";
+            },
+            error: function() {
+              document.getElementById("saveForm").value = "Something Went Wrong";
+            }
+         });
+    })})
+//OLD
+function submitconfig() {
+   var siteurl = window.location.href;
+   siteurl = siteurl.slice(0,-23);
+   siteurlsched = siteurl+':8080/scheduler';
+   siteurlunknown = siteurl+':8080/saveunknown';
+   if (document.getElementById("element_5_1").value = '1') {
+      var sese = "yes";
+   } else {
+      var sese = "no";
+   }
+   if (document.getElementById("element_4_1").value = '1') {
+      var sue = "yes";
+   } else {
+      var sue = "no";
+   }
+   shour = document.getElementById("element_1_1").value; 
+   sminutes = document.getElementById("element_1_2").value;
+   var unknownsucces = 0;
+   var schedulersucces = 0;
+   $.ajax({
+     type: 'POST',
+     data: {"enable":sue},
+     url: siteurlunknown,
+     async: false,
+     success: function (data) {
+       unknownsucces = 1;
+     }
+   });
+   $.ajax({
+     type: 'POST',
+     data: {"enable":sese,"hour":shour,"minutes":sminutes},
+     url: siteurlsched,
+     async: false,
+     success: function (data) {
+       schedulersucces = 1;
+     }
+   });
+   var checksum = unknownsucces + schedulersucces;
+   if (checksum = 2) {
+      document.getElementById("saveForm").value = "SuccessFully Submitted";
+   } else {
+      document.getElementById("saveForm").value = "Something Went Wrong";
+   }
+}
+</script>
+
+
+</head>
+<body id="main_body" onload = "loadconfig()">
+	
+	<img id="top" src="top.png" alt="">
+	<div id="form_container">
+	
+		<h1><a>Face Recognition System Settings</a></h1>
+		<form id="form_19725" class="appnitro" method="post" action="">
+					<div class="form_description">
+			<h2>Face Recognition System Settings</h2>
+			<p>Please change the settings below and click the submit button</p>
+		</div>						
+			<ul >
+			
+					<li class="section_break">
+			<h3>Saving Images of Unknown Persons to Disk</h3>
+			<p></p>
+		</li>		<li id="li_4" >
+		<label class="description" for="element_4">Enable Saving </label>
+		<span>
+			<select id="element_4_1" name="element_4_1"> 
+			
+<option value="1" >yes</option>
+<option value="2" >no</option>
+
+		</select>
+		
+                </span><p class="guidelines" id="guide_4"><small>With this function you can enable or disable saving the images of unknown faces. Saving these faces can be handy as you can assign persons to these faces/images later via the Web Interface. As an example: your best friend is not part of the trained face recognition system yet. When your friend visits your house and you have a system running which takes a picture of your living room once every x seconds, the system will classify your friend as an unknown person. By saving the image of his face, you can later update your system by creating a folder with your friends name and moving that image to this folder (all via the web interface). Now your friend will become part of the trained system.</small></p> 
+		</li>		<li class="section_break">
+			<h3>Schedule Saving of Trained System in memory to disk</h3>
+			<p></p>
+		</li>		<li id="li_5" >
+		<label class="description" for="element_5">Enable Scheduler </label>
+		<span>
+			<select width = "25%" id="element_5_1" name="element_5_1"> 
+			
+<option value="1" >yes</option>
+<option value="2" >no</option>
+
+		</select>
+
+		</span><p class="guidelines" id="guide_5"><small>Saving the trained encodings to disk is benefitial when you restart your system. The individual images of faces does not have to be trained with a restart, the system simply loads the data from a file on the disk. On the other hand, dumping a changed dataset to disk takes time and CPU. As such I implemented a function which schedules this task at a moment in time it will not interfere with other workloads. You can enable or disable this function. </small></p> 
+		</li>		<li id="li_1" >
+		<label class="description" for="element_1">Time </label>
+		<span>
+			<input id="element_1_1" name="element_1_1" class="element text " size="2" type="text" maxlength="2" value="22"/> : 
+			<label>HH</label>
+		</span>
+		<span>
+			<input id="element_1_2" name="element_1_2" class="element text " size="2" type="text" maxlength="2" value="00"/> : 
+			<label>MM</label>
+		</span><p class="guidelines" id="guide_1"><small>The time is always on a full hours (between 0 and 23) and minutes (between 0 and 59). Time should be given in UTC!</small></p> 
+		</li>
+			
+					<li class="buttons">
+			    <input type="hidden" name="form_id" value="19725" />
+			    
+				<input id="saveForm" class="button_text" type = "submit" name="submit" value="Submit"/>
+		</li>
+			</ul>
+		</form>	
+		<div id="footer">
+			
+		</div>
+	</div>
+	<img id="bottom" src="bottom.png" alt="">
+	</body>
+</html>
