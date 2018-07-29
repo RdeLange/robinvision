@@ -62,51 +62,6 @@ jQuery(function($) {
             }
          });
     })})
-//OLD
-function submitconfig() {
-   var siteurl = window.location.href;
-   siteurl = siteurl.slice(0,-23);
-   siteurlsched = siteurl+':8080/scheduler';
-   siteurlunknown = siteurl+':8080/saveunknown';
-   if (document.getElementById("element_5_1").value = '1') {
-      var sese = "yes";
-   } else {
-      var sese = "no";
-   }
-   if (document.getElementById("element_4_1").value = '1') {
-      var sue = "yes";
-   } else {
-      var sue = "no";
-   }
-   shour = document.getElementById("element_1_1").value; 
-   sminutes = document.getElementById("element_1_2").value;
-   var unknownsucces = 0;
-   var schedulersucces = 0;
-   $.ajax({
-     type: 'POST',
-     data: {"enable":sue},
-     url: siteurlunknown,
-     async: false,
-     success: function (data) {
-       unknownsucces = 1;
-     }
-   });
-   $.ajax({
-     type: 'POST',
-     data: {"enable":sese,"hour":shour,"minutes":sminutes},
-     url: siteurlsched,
-     async: false,
-     success: function (data) {
-       schedulersucces = 1;
-     }
-   });
-   var checksum = unknownsucces + schedulersucces;
-   if (checksum = 2) {
-      document.getElementById("saveForm").value = "SuccessFully Submitted";
-   } else {
-      document.getElementById("saveForm").value = "Something Went Wrong";
-   }
-}
 </script>
 
 
