@@ -344,11 +344,14 @@ def web_recognize():
 def web_faceboxemulator():
     r = request
     originimg =base64.b64decode(r.get_json()['base64'])
-    with open(app.config['TEMP_FOLDER']+"/temp_upload_image.jpg", 'wb') as f:
+    timestr = dt.now().strftime("%Y%m%d-%H%M%S%f")
+    tempfilename = "temp_upload_image_"+timestr+".jpg"
+    with open(app.config['TEMP_FOLDER']+"/"+tempfilename, 'wb') as f:
         f.write(originimg)
-    image2 = open(app.config['TEMP_FOLDER']+"/temp_upload_image.jpg", 'rb')
+    image2 = open(app.config['TEMP_FOLDER']+"/"+tempfilename, 'rb')
     result = detect_faces_in_image(image2)
     image2.close()
+    os.remove(app.config['TEMP_FOLDER']+"/"+tempfilename)
     return result
 
 @app.route('/train', methods=['GET'])
