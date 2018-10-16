@@ -50,20 +50,20 @@ RUN cd ~ && \
 # Install Apache & PHP
 RUN cd ~ && \
     apt-get install -y apache2 \
-    libapache2-mod-php5 \
-    php5 \
+    libapache2-mod-php \
+    php \
     php-pear \
-    php5-xcache \
-    php5-mysql \
-    php5-curl \
-    php5-gd
-
+    php-mysql \
+    php-curl \
+    php-gd
+#    php-xcache \
 
 # Copy RobinVision python script
 RUN cd ~ && \
     mkdir -p app
 COPY RobinVision.py /root/app/RobinVision.py
 COPY StartRV.sh /root/app/StartRV.sh
+COPY config.cfg /root/app/config.cfg
 
 # Copy RobinVision initial encodings
 RUN cd ~ && \
