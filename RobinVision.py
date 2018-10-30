@@ -354,6 +354,15 @@ def web_faceboxemulator():
     os.remove(app.config['TEMP_FOLDER']+"/"+tempfilename)
     return result
 
+@app.route('/healthz', methods=['GET'])
+#FACEBOX EMULATOR API TO CHECK HEALTH OF THE SYSTEM
+#ALSO USED BY HOME ASSISTANT COMPONENT
+def web_faceboxemulatorhealth():
+    metadata = {"boxname": "faceboxemulator","build": "20181101"}
+    errors = []
+    health = {"success": True,"hostname": "robinvision","metadata": metadata,"errors": errors}
+    return jsonify(health)
+
 @app.route('/train', methods=['GET'])
 def web_train():
     #train the system with all the images currently in the folder structure
