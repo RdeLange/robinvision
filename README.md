@@ -15,6 +15,18 @@ Start by building the docker image with a defined name. This can take a while.
 ```bash
 docker build -t robinvision .
 ```
+### Pull the Docker image
+
+You can also pull the docker image from the Docker Hub registry. There are 2 options, the image with avx and without avx support. This depends on your underlying hardware architecture.
+
+```bash
+docker pull rdelange/robinvision_noavx:20181101
+```
+or
+
+```bash
+docker pull rdelange/robinvision:20181101
+```
 
 ### Run the Docker image
 
@@ -85,6 +97,8 @@ Facebox teach endpoint
 `curl -X POST -F "file=@Ronald3.jpg" "http://localhost:8080/facebox/teach?name=Ronaldir&id=Dummy.jpg"`
 (id is optional)
 
+Facebox healthz endpoint (used by Home Assistant component to check the health of the system befor launching the component.
+`curl http://localhost:8080/healthz`
 
 ### Web Interface
 
