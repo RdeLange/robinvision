@@ -89,8 +89,8 @@ Simple `GET` the `/getschedule` endpoint.
 
 ### FaceBox emulation
 
-In order to be able to make use of this service from the excelent Home Assistant software I have created an API which emulates the FaceBox docker container API for the /facebox/check & /facebox/teach endpoints 
-Just setup the FaceBox component in Home Assistant as per Home Assistant documentation, use the ip address of the RobinVision container as the ip address and the port is 8080. Have Fun
+In order to be able to make use of this service from the excelent Home Assistant software I have created an API which emulates the FaceBox docker container API for the /facebox/check, /facebox/teach & /healthz endpoints 
+Just setup the FaceBox component in Home Assistant as per Home Assistant documentation, use the ip address of the RobinVision container as the ip address and the port is 8080. Have Fun.
 For reference, the API endpoint /facebox/check will only emulates the base64 json implementation (as used in the Home Assistant component). If you would like to check an individual image file you can use the example as given above under ###Identify faces on image
 
 Facebox teach endpoint
