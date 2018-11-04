@@ -328,7 +328,17 @@ _.refresh = function(selected) {
 
 _.train = function() {
     var siteurl = window.location.href;
-    siteurl = siteurl.slice(0,-1);
+
+    var s = siteurl; 
+    if (s.includes("http://")) {
+       siteurl = s.split('http://')[1];}
+    s = siteurl; 
+    if (s.includes(":")) {
+       siteurl = s.split(':')[0];}
+    s = siteurl; 
+    if (s.includes("/")) {
+        siteurl = s.split('/')[0];}
+//    siteurl = siteurl.slice(0,-1);
     siteurl = siteurl+':8181/train';
     var html = '<div class="box about">' +'<div>Face Recognition System by R de Lange</div>';
     html += '<div id="checkver"><span class="loading"><span>' + _.label("Training Faces") + '</span></span></div>';

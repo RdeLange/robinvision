@@ -9,7 +9,16 @@
 <script>
 function loadconfig(){
    var siteurl = window.location.href;
-   siteurl = siteurl.slice(0,-23);
+   var s = siteurl; 
+   if (s.includes("http://")) {
+      siteurl = s.split('http://')[1];}
+   s = siteurl; 
+   if (s.includes(":")) {
+      siteurl = s.split(':')[0];}
+   s = siteurl; 
+   if (s.includes("/")) {
+       siteurl = s.split('/')[0];}
+//   siteurl = siteurl.slice(0,-23);
    siteurl = siteurl+':8181/getconfig';
    var sue = "";
    var sese = "";
@@ -43,7 +52,16 @@ jQuery(function($) {
         event.preventDefault();
         // grab parameters
         var siteurl = window.location.href;
-        siteurl = siteurl.slice(0,-23);
+        var s = siteurl; 
+        if (s.includes("http://")) {
+           siteurl = s.split('http://')[1];}
+        s = siteurl; 
+        if (s.includes(":")) {
+           siteurl = s.split(':')[0];}
+        s = siteurl; 
+        if (s.includes("/")) {
+            siteurl = s.split('/')[0];}
+//        siteurl = siteurl.slice(0,-23);
         siteurl = siteurl+':8181/submitconfig';
         sese = document.getElementById("element_5_1").value
         sue = document.getElementById("element_4_1").value
