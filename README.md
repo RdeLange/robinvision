@@ -10,6 +10,16 @@ On top of that I included a slightly adjusted KCFinder implementation so you can
 
 ### Build the Docker image
 
+First check if your cpu can handle avx instructions. If not, change the following line in the Dockerfile
+
+```bash
+python3 setup.py install --yes USE_AVX_INSTRUCTIONS
+```
+to
+
+```bash
+python3 setup.py install --no USE_AVX_INSTRUCTIONS
+```
 Start by building the docker image with a defined name. This can take a while.
 
 ```bash
