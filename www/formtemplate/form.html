@@ -10,7 +10,7 @@
 function loadconfig(){
    var siteurl = window.location.href;
    siteurl = siteurl.slice(0,-23);
-   siteurl = siteurl+':8080/getconfig';
+   siteurl = siteurl+':8181/getconfig';
    var sue = "";
    var sese = "";
    var shour = "";
@@ -44,7 +44,7 @@ jQuery(function($) {
         // grab parameters
         var siteurl = window.location.href;
         siteurl = siteurl.slice(0,-23);
-        siteurl = siteurl+':8080/submitconfig';
+        siteurl = siteurl+':8181/submitconfig';
         sese = document.getElementById("element_5_1").value
         sue = document.getElementById("element_4_1").value
         shour = document.getElementById("element_1_1").value; 
