@@ -25,10 +25,10 @@ Start by building the docker image with a defined name. This can take a while.
 ```bash
 docker build -t robinvision .
 ```
-Start the image and forward port 8080 & 80.
+Start the image and forward port 8181 & 80.
 
 ```bash
-docker run -d -p 8080:8080 -p 80:80 robinvision
+docker run -d -p 8181:8181 -p 80:80 robinvision
 ```
 
 ### Pull the Docker image
@@ -44,15 +44,15 @@ or
 docker pull rdelange/robinvision:20181105
 ```
 
-Start the image and forward port 8080 & 80.
+Start the image and forward port 8181 & 80.
 
 ```bash
-docker run -d -p 8080:8080 -p 80:80 rdelange/robinvision_noavx:20181105
+docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision_noavx:20181105
 ````
 or
 
 ```bash
-docker run -d -p 8080:8080 -p 80:80 rdelange/robinvision:20181105
+docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision:20181105
 ```
 
 
@@ -62,38 +62,38 @@ docker run -d -p 8080:8080 -p 80:80 rdelange/robinvision:20181105
 ### Register known faces
 
 Simple `POST` an image-file to the `/addface` endpoint and provide an identifier.
-`curl -X POST -F "file=@person1.jpg" http://localhost:8080/addface?name=person1`
+`curl -X POST -F "file=@person1.jpg" http://localhost:8181/addface?name=person1`
 
 ### Read registered faces
 
 Simple `GET` the `/faces` endpoint.
-`curl http://localhost:8080/faces`
+`curl http://localhost:8181/faces`
 
 ### Identify faces on image
 
 Simple `POST` an image-file to the web service.
-`curl -X POST -F "file=@person1.jpg" http://localhost:8080/`
+`curl -X POST -F "file=@person1.jpg" http://localhost:8181/`
 
 ### Delete persons
 Simple `DELETE` a person from the web service
-`curl -X DELETE http://localhost:8080/removeface?name=person1`
+`curl -X DELETE http://localhost:8181/removeface?name=person1`
 
 ### Train the system/create encodings from all saved images
 Simple `GET` the `/train` endpoint.
-`curl http://localhost:8080/train`
+`curl http://localhost:8181/train`
 
 ### Enable/Disable saving of unknown faces
 With this function you can enable or disable saving the images of unknown faces. Saving these faces can be handy as you can assign persons to these faces/images later via the Web Interface. As an example: your best friend is not part of the trained face recognition system yet. When your friend visits your house and you have a system running which takes a picture of your living room once every x seconds, the system will classify your friend as an unknown person. By saving the image of his face, you can later update your system by creating a folder with your friends name and moving that image to this folder (all via the web interface). Now your friend will become part of the trained system.
 
 Simple `POST` the `/saveunknown` endpoint.
-`curl -X POST "http://localhost:8080/saveunknown?enable=yes"`
+`curl -X POST "http://localhost:8181/saveunknown?enable=yes"`
 
 ### Enable/Disable scheduling of saving the trained encodings to disk
 Saving the trained encodings to disk is benefitial when you restart your system. The individual images of faces does not have to be trained with a restart, the system simply loads the data from a file on the disk. On the other hand, dumping a changed dataset to disk takes time and CPU. As such I implemented a function which schedules this task at a moment in time it will not interfere with other workloads.
 You can enable or disable this function. The time is always on a full hours (between 0 and 23) and minutes (between 0 and 59). Time should be given in UTC!
 
 Simple `POST` the `/scheduler` endpoint.
-`curl -X POST "http://localhost:8080/scheduler?enable=yes&hour=22&minutes=45"`
+`curl -X POST "http://localhost:8181/scheduler?enable=yes&hour=22&minutes=45"`
 
 ### Get the next scheduled saving of training encodings to disk
 It will return json like:
@@ -106,7 +106,7 @@ It will return json like:
 ]
 
 Simple `GET` the `/getschedule` endpoint.
-`curl http://localhost:8080/getschedule`
+`curl http://localhost:8181/getschedule`
 
 ### FaceBox emulation
 
@@ -115,11 +115,11 @@ Just setup the FaceBox component in Home Assistant as per Home Assistant documen
 For reference, the API endpoint /facebox/check will only emulates the base64 json implementation (as used in the Home Assistant component). If you would like to check an individual image file you can use the example as given above under ###Identify faces on image
 
 Facebox teach endpoint
-`curl -X POST -F "file=@Ronald3.jpg" "http://localhost:8080/facebox/teach?name=Ronaldir&id=Dummy.jpg"`
+`curl -X POST -F "file=@Ronald3.jpg" "http://localhost:8181/facebox/teach?name=Ronaldir&id=Dummy.jpg"`
 (id is optional)
 
 Facebox healthz endpoint (used by Home Assistant component to check the health of the system befor launching the component.
-`curl http://localhost:8080/healthz`
+`curl http://localhost:8181/healthz`
 
 ### Web Interface
 
