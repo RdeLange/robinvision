@@ -15,26 +15,37 @@ Start by building the docker image with a defined name. This can take a while.
 ```bash
 docker build -t robinvision .
 ```
-### Pull the Docker image
-
-You can also pull the docker image from the Docker Hub registry. There are 2 options, the image with avx and without avx support. This depends on your underlying hardware architecture.
-
-```bash
-docker pull rdelange/robinvision_noavx:20181101
-```
-or
-
-```bash
-docker pull rdelange/robinvision:20181101
-```
-
-### Run the Docker image
-
 Start the image and forward port 8080 & 80.
 
 ```bash
 docker run -d -p 8080:8080 -p 80:80 robinvision
 ```
+
+### Pull the Docker image
+
+You can also pull the docker image from the Docker Hub registry. There are 2 options, the image with avx and without avx support. This depends on your underlying hardware architecture.
+
+```bash
+docker pull rdelange/robinvision_noavx:20181105
+```
+or
+
+```bash
+docker pull rdelange/robinvision:20181105
+```
+
+Start the image and forward port 8080 & 80.
+
+```bash
+docker run -d -p 8080:8080 -p 80:80 rdelange/robinvision_noavx:20181105
+````
+or
+
+```bash
+docker run -d -p 8080:8080 -p 80:80 rdelange/robinvision:20181105
+```
+
+
 
 ## Features
 
