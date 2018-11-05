@@ -327,19 +327,10 @@ _.refresh = function(selected) {
 };
 
 _.train = function() {
-    var siteurl = window.location.href;
-
-    var s = siteurl; 
-    if (s.includes("http://")) {
-       siteurl = s.split('http://')[1];}
-    s = siteurl; 
-    if (s.includes(":")) {
-       siteurl = s.split(':')[0];}
-    s = siteurl; 
-    if (s.includes("/")) {
-        siteurl = s.split('/')[0];}
-//    siteurl = siteurl.slice(0,-1);
+    var siteurl = window.location.hostname;
     siteurl = siteurl+':8181/train';
+    var protocol = window.location.protocol;
+    siteurl = protocol+'//'+siteurl;
     var html = '<div class="box about">' +'<div>Face Recognition System by R de Lange</div>';
     html += '<div id="checkver"><span class="loading"><span>' + _.label("Training Faces") + '</span></span></div>';
     html += '<div>' + _.label("Licenses:") + ' <a href="http://opensource.org/licenses/GPL-3.0" target="_blank">GPLv3</a> & <a href="http://opensource.org/licenses/LGPL-3.0" target="_blank">LGPLv3</a></div>' + '<div>Copyright &copy;2018 Ronald de Lange</div>' + '</div>';

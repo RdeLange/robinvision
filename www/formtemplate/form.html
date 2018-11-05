@@ -8,18 +8,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script>
 function loadconfig(){
-   var siteurl = window.location.href;
-   var s = siteurl; 
-   if (s.includes("http://")) {
-      siteurl = s.split('http://')[1];}
-   s = siteurl; 
-   if (s.includes(":")) {
-      siteurl = s.split(':')[0];}
-   s = siteurl; 
-   if (s.includes("/")) {
-       siteurl = s.split('/')[0];}
-//   siteurl = siteurl.slice(0,-23);
+   var siteurl = window.location.hostname;
    siteurl = siteurl+':8181/getconfig';
+   var protocol = window.location.protocol;
+   siteurl = protocol+'//'+siteurl;
    var sue = "";
    var sese = "";
    var shour = "";
@@ -51,18 +43,10 @@ jQuery(function($) {
         // stop the form submitting
         event.preventDefault();
         // grab parameters
-        var siteurl = window.location.href;
-        var s = siteurl; 
-        if (s.includes("http://")) {
-           siteurl = s.split('http://')[1];}
-        s = siteurl; 
-        if (s.includes(":")) {
-           siteurl = s.split(':')[0];}
-        s = siteurl; 
-        if (s.includes("/")) {
-            siteurl = s.split('/')[0];}
-//        siteurl = siteurl.slice(0,-23);
+        var siteurl = window.location.hostname;
         siteurl = siteurl+':8181/submitconfig';
+        var protocol = window.location.protocol;
+        siteurl = protocol+'//'+siteurl;
         sese = document.getElementById("element_5_1").value
         sue = document.getElementById("element_4_1").value
         shour = document.getElementById("element_1_1").value; 
@@ -76,7 +60,7 @@ jQuery(function($) {
               document.getElementById("saveForm").value = "SuccessFully Submitted";
             },
             error: function() {
-              document.getElementById("saveForm").value = "Something Went Wrong";
+              document.getElementById("saveForm").value = siteurl;
             }
          });
     })})
