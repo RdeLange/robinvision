@@ -30,6 +30,7 @@ Start the image and forward port 8181 & 80.
 ```bash
 docker run -d -p 8181:8181 -p 80:80 robinvision
 ```
+IMPORTANT REMARK: please always use 8181 as the host port. Changing this will cause the system not to function. On the TODO list to have this fixed
 
 ### Pull the Docker image
 
@@ -54,7 +55,7 @@ or
 ```bash
 docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision:20181105
 ```
-
+IMPORTANT REMARK: please always use 8181 as the host port. Changing this will cause the system not to function. On the TODO list to have this fixed
 
 
 ## Features
