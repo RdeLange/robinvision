@@ -2,7 +2,7 @@
 
 This project provides a docker image which offers a web service to recognize known faces on images. It's based on the great [ageitgey/face_recognition](https://github.com/ageitgey/face_recognition) and [JanLoebel/face_recognition](https://github.com/JanLoebel/face_recognition) projects and just add additional web services using the Python `face_recognition`-library. This service also includes a FaceBox emulate API I create to use the FaceBox component in Home Assistant without having the limitations of the free FaceBox docker container.
 
-On top of that I included a slightly adjusted KCFinder implementation so you can manage your face images via a browser and trigger the 'learn faces API.
+On top of that I included a slightly adjusted KCFinder implementation so you can manage your face images via a browser and trigger the 'learn faces' API.
 
 ....by the way, I got some questions on why this is called Robin Vision. It is because I gave my home automation setup the 'name' Robin (as per famous Dutch television show 'Bassie and Adriaan').....
 
@@ -112,7 +112,7 @@ Simple `GET` the `/getschedule` endpoint.
 ### FaceBox emulation
 
 In order to be able to make use of this service from the excelent Home Assistant software I have created an API which emulates the FaceBox docker container API for the /facebox/check, /facebox/teach & /healthz endpoints 
-Just setup the FaceBox component in Home Assistant as per Home Assistant documentation, use the ip address of the RobinVision container as the ip address and the port is 8080. Have Fun.
+Just setup the FaceBox component in Home Assistant as per Home Assistant documentation, use the ip address of the RobinVision container as the ip address and the port is 8181. Have Fun.
 For reference, the API endpoint /facebox/check will only emulates the base64 json implementation (as used in the Home Assistant component). If you would like to check an individual image file you can use the example as given above under ###Identify faces on image
 
 Facebox teach endpoint
