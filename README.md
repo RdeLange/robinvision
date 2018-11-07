@@ -37,23 +37,23 @@ IMPORTANT REMARK: please always use 8181 as the host port. Changing this will ca
 You can also pull the docker image from the Docker Hub registry. There are 2 options, the image with avx and without avx support. This depends on your underlying hardware architecture.
 
 ```bash
-docker pull rdelange/robinvision_noavx:20181105
+docker pull rdelange/robinvision_noavx:latest
 ```
 or
 
 ```bash
-docker pull rdelange/robinvision:20181105
+docker pull rdelange/robinvision:latest
 ```
 
 Start the image and forward port 8181 & 80.
 
 ```bash
-docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision_noavx:20181105
+docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision_noavx:latest
 ````
 or
 
 ```bash
-docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision:20181105
+docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision:latest
 ```
 IMPORTANT REMARK: please always use 8181 as the host port. Changing this will cause the system not to function. On the TODO list to have this fixed
 
