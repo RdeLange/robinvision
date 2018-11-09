@@ -133,8 +133,9 @@ def get_all_images_files(path):
         for file in f:
             imgpath = os.path.join(r, file)
             if not "/Unknown/" in imgpath:
-                if is_picture(file) == True:
-                    imagePaths.append(imgpath)
+                if not "@eaDir" in imgpath: # to avoid loading thumbnails when running container on Synology
+                    if is_picture(file) == True:
+                        imagePaths.append(imgpath)
     for (i, imagePath) in enumerate(imagePaths):
         # extract the person name from the image path
         print("[INFO] processing image {}/{}".format(i + 1,len(imagePaths))+" - "+ imagePath)
