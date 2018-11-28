@@ -89,6 +89,12 @@ With this function you can enable or disable saving the images of unknown faces.
 Simple `POST` the `/saveunknown` endpoint.
 `curl -X POST "http://localhost:8181/saveunknown?enable=yes"`
 
+### Enable/Disable accelerated mode
+With this function you can enable or disable accelerated recognition mode. This is being achieved by downsizing the image before starting the recognition process. This will accelerate the process, but you should keep in mind that small details will be more difficult to differentiate for the system. This means that if the picture contains small faces, they might become too small for the recognition process in the downsized image.
+
+Simple `POST` the `/acceleration` endpoint.
+`curl -X POST "http://localhost:8181/acceleration?enable=yes"`
+
 ### Enable/Disable scheduling of saving the trained encodings to disk
 Saving the trained encodings to disk is benefitial when you restart your system. The individual images of faces does not have to be trained with a restart, the system simply loads the data from a file on the disk. On the other hand, dumping a changed dataset to disk takes time and CPU. As such I implemented a function which schedules this task at a moment in time it will not interfere with other workloads.
 You can enable or disable this function. The time is always on a full hours (between 0 and 23) and minutes (between 0 and 59). Time should be given in UTC!
