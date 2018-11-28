@@ -12,6 +12,7 @@ function loadconfig(){
    siteurl = siteurl+':8181/getconfig';
    var protocol = window.location.protocol;
    siteurl = protocol+'//'+siteurl;
+   var ae = "";
    var sue = "";
    var sese = "";
    var shour = "";
@@ -23,10 +24,12 @@ function loadconfig(){
      async: true,
      dataType: 'json',
      success: function (data) {
+       ae = data.acceleration_enabled;
        sue = data.saveunknown_enabled;
        sese = data.schedule_enabled;
        shour = data.schedule_hour;
        sminutes = data.schedule_minutes;
+       document.getElementById("element_3_1").value = ae;
        document.getElementById("element_4_1").value = sue;
        document.getElementById("element_5_1").value = sese ;
        document.getElementById("element_1_1").value =shour.toString();
@@ -47,13 +50,14 @@ jQuery(function($) {
         siteurl = siteurl+':8181/submitconfig';
         var protocol = window.location.protocol;
         siteurl = protocol+'//'+siteurl;
+        ae = document.getElementById("element_3_1").value
         sese = document.getElementById("element_5_1").value
         sue = document.getElementById("element_4_1").value
         shour = document.getElementById("element_1_1").value; 
         sminutes = document.getElementById("element_1_2").value;
         $.ajax({
             type: 'POST',
-            data: {"enable_u":sue,"enable_s":sese,"hour":shour,"minutes":sminutes},
+            data: {"enable_a":ae,"enable_u":sue,"enable_s":sese,"hour":shour,"minutes":sminutes},
             url: siteurl,
             async: false,
             success: function (data) {
@@ -81,7 +85,21 @@ jQuery(function($) {
 		</div>						
 			<ul >
 			
-					<li class="section_break">
+				<li class="section_break">
+			<h3>Accelerated Recognition Mode</h3>
+			<p></p>
+		</li>		<li id="li_3" >
+		<label class="description" for="element_3">Enable Acceleration </label>
+		<span>
+			<select id="element_3_1" name="element_3_1"> 
+			
+<option value="1" >yes</option>
+<option value="2" >no</option>
+
+		</select>
+		
+                </span><p class="guidelines" id="guide_3"><small>With this function you can enable or disable accelerated recognition mode. This acceleration is achieved by resizing the image to a smaller image before the recognition process is started. This will accelerate the process, but when a lot of small faces are on the image, the details may be lost in the resize action and faces might not be recognized anymore.</small></p> 
+		</li>	           <li class="section_break">
 			<h3>Saving Images of Unknown Persons to Disk</h3>
 			<p></p>
 		</li>		<li id="li_4" >

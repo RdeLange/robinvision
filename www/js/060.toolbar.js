@@ -364,8 +364,8 @@ _.frsettings = function() {
     siteurl = siteurl.slice(0,-1);
     //siteurl = siteurl+':8080/train';
     //var formhtml = '<body id="main_body"></body>';
-    var formhtml =  '<iframe src="'+siteurl+ '/formtemplate/form.html" width="665" height="545"></iframe>';
-    var dlg = _.dialog(_.label("Face Recognition System Settings"), formhtml, {width: 680, height: 645});
+    var formhtml =  '<iframe src="'+siteurl+ '/formtemplate/form.html" width="665" height="700"></iframe>';
+    var dlg = _.dialog(_.label("Face Recognition System Settings"), formhtml, {width: 680, height: 800});
     //$("#body").load(siteurl+"/formtemplate/form.html");
 };
 //FRSETTINGS END

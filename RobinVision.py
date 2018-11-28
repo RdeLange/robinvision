@@ -28,12 +28,14 @@ faces_dict = {}
 #load config
 param_scheduler = "disabled"
 param_saveunknown = "disabled"
+param_acceleration = "disabled"
 param_hour = "21"
 param_minutes = "00"
 frconfigparser = SafeConfigParser()
 frconfigparser.read('config.cfg')
 param_scheduler = frconfigparser.get('FRCONFIG', 'scheduler')
 param_saveunknown = frconfigparser.get('FRCONFIG', 'saveunknown')
+param_acceleration = frconfigparser.get('FRCONFIG', 'acceleration')
 param_hour = int(frconfigparser.get('FRCONFIG', 'hour'))
 param_minutes = int(frconfigparser.get('FRCONFIG', 'minutes'))
 
@@ -49,6 +51,11 @@ if param_scheduler == "enabled":
    SCHEDULE_ENCODINGS_SAVE = True
 else:
    SCHEDULE_ENCODINGS_SAVE = False
+if param_acceleration == "enabled":
+   ACCELERATION = True
+else:
+   ACCELERATION = False
+
 SCHEDULE_ENCODINGS_HOUR = param_hour
 SCHEDULE_ENCODINGS_MINUTES = param_minutes
 app = Flask(__name__)
@@ -56,6 +63,7 @@ app.config['FACES_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
 app.config['ENCODINGS_FOLDER'] = ENCODINGS_FOLDER
 app.config['SAVE_UNKNOWN'] = SAVE_UNKNOWN
+app.config['ACCELERATION'] = ACCELERATION
 app.config['SCHEDULE_ENCODINGS_SAVE'] = SCHEDULE_ENCODINGS_SAVE
 app.config['SCHEDULE_ENCODINGS_HOUR'] = SCHEDULE_ENCODINGS_HOUR
 app.config['SCHEDULE_ENCODINGS_MINUTES'] = SCHEDULE_ENCODINGS_MINUTES
@@ -72,6 +80,10 @@ def save_config():
       value_saveunknown = "enabled"
     else:
       value_saveunknown = "disabled"
+    if app.config['ACCELERATION'] == True:
+      value_acceleration = "enabled"
+    else:
+      value_acceleration = "disabled"
     parser = SafeConfigParser()
     parser.read('config.cfg')
     for each_section in parser.sections():
@@ -79,6 +91,7 @@ def save_config():
     parser.add_section('FRCONFIG')
     parser.set('FRCONFIG', 'scheduler', value_scheduler)
     parser.set('FRCONFIG', 'saveunknown', value_saveunknown)
+    parser.set('FRCONFIG', 'acceleration', value_acceleration)
     parser.set('FRCONFIG', 'hour', str(app.config['SCHEDULE_ENCODINGS_HOUR']))
     parser.set('FRCONFIG', 'minutes', str(app.config['SCHEDULE_ENCODINGS_MINUTES']))
     new_config_file = open('config.cfg', 'w')
@@ -332,10 +345,24 @@ def run_schedule(message):
 @app.route('/', methods=['POST'])
 def web_recognize():
     #check for known faces on the image Posted
-    file = request.files['file']
-    if file and is_picture(file.filename):
+    f = request.files['file']
+    if f and is_picture(f.filename):
         # The image file seems valid! Detect faces and return the result.
-        return detect_faces_in_image(file)
+        timestr = dt.now().strftime("%Y%m%d-%H%M%S%f")
+        tempfilename = "temp_upload_image_"+timestr+".jpg"
+        f.save(app.config['TEMP_FOLDER']+"/"+tempfilename)
+        if app.config['ACCELERATION'] == True:
+            image2 = Image.open(app.config['TEMP_FOLDER']+"/"+tempfilename)
+            basewidth = 640
+            wpercent = (basewidth/float(image2.size[0]))
+            hsize = int((float(image2.size[1])*float(wpercent)))
+            image2 = image2.resize((basewidth,hsize), Image.ANTIALIAS)
+            image2.save(app.config['TEMP_FOLDER']+"/"+tempfilename) 
+        image3 = open(app.config['TEMP_FOLDER']+"/"+tempfilename, 'rb')
+        result = detect_faces_in_image(image3)
+        image3.close()
+        os.remove(app.config['TEMP_FOLDER']+"/"+tempfilename)
+        return result
     else:
         raise BadRequest("Given file is invalid!")
 
@@ -349,9 +376,17 @@ def web_faceboxemulator():
     tempfilename = "temp_upload_image_"+timestr+".jpg"
     with open(app.config['TEMP_FOLDER']+"/"+tempfilename, 'wb') as f:
         f.write(originimg)
-    image2 = open(app.config['TEMP_FOLDER']+"/"+tempfilename, 'rb')
-    result = detect_faces_in_image(image2)
-    image2.close()
+    
+    if app.config['ACCELERATION'] == True:
+        image2 = Image.open(app.config['TEMP_FOLDER']+"/"+tempfilename)
+        basewidth = 640
+        wpercent = (basewidth/float(image2.size[0]))
+        hsize = int((float(image2.size[1])*float(wpercent)))
+        image2 = image2.resize((basewidth,hsize), Image.ANTIALIAS)
+        image2.save(app.config['TEMP_FOLDER']+"/"+tempfilename) 
+    image3 = open(app.config['TEMP_FOLDER']+"/"+tempfilename, 'rb')
+    result = detect_faces_in_image(image3)
+    image3.close()
     os.remove(app.config['TEMP_FOLDER']+"/"+tempfilename)
     return result
 
@@ -467,6 +502,28 @@ def web_saveunknown():
     save_config()
     return jsonify(feedback)
 
+@app.route('/acceleration', methods=['POST'])
+#ENABLE OR DISABLE ACCELERATED FACE RECOGNITION. (enable or disable downsising of image before processing)
+def web_acceleration():
+    if 'enable' in request.args:
+        enable_remember = request.args.get('enable').replace(" ", "_")
+    elif 'enable' in request.form:
+        enable_remember = request.form.get('enable').replace(" ", "_")
+    else:
+        raise BadRequest("No valid input given, please specify enable=yes OR enable=no")
+    if enable_remember not in ("yes", "no"):
+        raise BadRequest("No valid input given, please specify enable=yes OR enable=no")
+    if enable_remember == "yes":
+        app.config['ACCELERATION'] = True
+        feedback = {"success": True, "message": "Accelerated mode is enabled"}
+    elif enable_remember == "no":
+        app.config['ACCELERATION'] = False
+        feedback = {"success": True, "message": "Accelerated mode is disabled"}
+    else:
+        feedback = {"success": False, "message": "Something went wrong. Settings have not been changed"}
+    save_config()
+    return jsonify(feedback)
+
 @app.route('/scheduler', methods=['POST'])
 #ENABLE OR DISABLE SCHEDULER TO SAVE ENCODINGS TO DISK AT A GIVEN TIME
 def web_scheduler():
@@ -525,6 +582,10 @@ def web_getschedule():
 
 @app.route('/getconfig', methods=['GET'])
 def web_getconfig():
+    if app.config['ACCELERATION'] == True:
+        ae = "1"
+    else:
+        ae = "2"
     if app.config['SAVE_UNKNOWN'] == True:
         sue = "1"
     else:
@@ -535,7 +596,7 @@ def web_getconfig():
         sese = "2"
     shour = app.config['SCHEDULE_ENCODINGS_HOUR']
     sminutes = app.config['SCHEDULE_ENCODINGS_MINUTES']
-    feedback = {"saveunknown_enabled":sue,"schedule_enabled":sese,"schedule_hour": shour,"schedule_minutes": sminutes}
+    feedback = {"acceleration_enabled":ae,"saveunknown_enabled":sue,"schedule_enabled":sese,"schedule_hour": shour,"schedule_minutes": sminutes}
     return jsonify(feedback)
 
 @app.route('/submitconfig', methods=['POST'])
@@ -595,6 +656,22 @@ def web_submitconfig():
         feedback.update({"UnknownFacessuccess": True, "message": "Unknown faces will no longer be remembered but directly deleted"})
     else:
         feedback.update({"UnknownFacessuccess": False, "message": "Something went wrong. Settings have not been changed"})
+    if 'enable_a' in request.args:
+        enable_acceleration = request.args.get('enable_a').replace(" ", "_")
+    elif 'enable_a' in request.form:
+        enable_acceleration = request.form.get('enable_a').replace(" ", "_")
+    else:
+        raise BadRequest("No valid input given, please specify enable_u=1 OR enable_u=2")
+    if enable_acceleration not in ("1", "2"):
+        raise BadRequest("No valid input given, please specify enable_u=1 OR enable_u=2")
+    if enable_acceleration == "1":
+        app.config['ACCELERATION'] = True
+        feedback.update({"Accelerationsuccess": True, "message": "Accelerated recognition is enabled."})
+    elif enable_acceleration == "2":
+        app.config['ACCELERATION'] = False
+        feedback.update({"Accelerationsuccess": True, "message": "Accelerated recognition is disabled."})
+    else:
+        feedback.update({"Accelerationsuccess": False, "message": "Something went wrong. Settings have not been changed"})
     save_config()
     return jsonify(feedback)
 
