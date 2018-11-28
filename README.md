@@ -140,7 +140,7 @@ Just setup the FaceBox component in Home Assistant as per Home Assistant documen
 For reference, the API endpoint /facebox/check will only emulates the base64 json implementation (as used in the Home Assistant component). If you would like to check an individual image file you can use the example as given above under ###Identify faces on image
 
 Facebox teach endpoint
-`curl -X POST -F "file=@Ronald3.jpg" "http://localhost:8181/facebox/teach?name=Ronal&id=Dummy.jpg"`
+`curl -X POST -F "file=@Ronald3.jpg" "http://localhost:8181/facebox/teach?name=Ronald&id=Dummy.jpg"`
 (id is optional)
 
 Facebox healthz endpoint (used by Home Assistant component to check the health of the system befor launching the component.
