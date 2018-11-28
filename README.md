@@ -30,7 +30,7 @@ Start the image and forward port 8181 & 80.
 ```bash
 docker run -d -p 8181:8181 -p 80:80 robinvision
 ```
-To make the folders with the trained faces persistent, use below (where /xxx/xxx/xxx is the full path to the folder which is containing the subfolders with images)
+To make the folders with the trained faces persistent, use below (where /xxx/xxx/xxx is the full path to the local folder which is containing the subfolders with images)
 
 ```bash
 docker run -d -p 8181:8181 -p 80:80 -v /xxx/xxx/xxx:/var/www/html/faces/files robinvision
@@ -62,7 +62,7 @@ or
 docker run -d -p 8181:8181 -p 80:80 rdelange/robinvision:latest
 ```
 
-To make the folders with the trained faces persistent, use below (where /xxx/xxx/xxx is the full path to the folder which is containing the subfolders with images)
+To make the folders with the trained faces persistent, use below (where /xxx/xxx/xxx is the full path to the local folder which is containing the subfolders with images)
 
 ```bash
 docker run -d -p 8181:8181 -p 80:80 -v /xxx/xxx/xxx:/var/www/html/faces/files rdelange/robinvision_noavx:latest
